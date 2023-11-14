@@ -6,7 +6,7 @@ conn = sqlite3.connect("employee.db")
 cursor = conn.cursor()
 cursor.execute(
     """
-    CREATE TABLE IF NOT EXISTS Employees (
+    CREATE TABLE IF NOT EXISTS Employee (
         EmployeeID INTEGER PRIMARY KEY,
         Name TEXT NOT NULL,
         Age INTEGER,
@@ -22,13 +22,13 @@ cursor.execute(
         DepartmentName TEXT NOT NULL,
         HODID INTEGER,
         NumStaff INTEGER,
-        FOREIGN KEY (HODID) REFERENCES Employees(EmployeeID)
+        FOREIGN KEY (HODID) REFERENCES Employee(EmployeeID)
     )
 """
 )
 cursor.execute(
     """
-    CREATE TABLE IF NOT EXISTS Positions (
+    CREATE TABLE IF NOT EXISTS Position (
         PositionID INTEGER PRIMARY KEY AUTOINCREMENT,
         Title TEXT NOT NULL,
         Salary REAL,
@@ -38,12 +38,12 @@ cursor.execute(
 )
 cursor.execute(
     """
-    CREATE TABLE IF NOT EXISTS Projects (
+    CREATE TABLE IF NOT EXISTS Project (
         ProjectID INTEGER PRIMARY KEY AUTOINCREMENT,
         Title TEXT,
         Description TEXT,
         EmployeeID INTEGER,
-        FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+        FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID)
     )
 """
 )
@@ -51,11 +51,11 @@ cursor.execute(
 cursor.execute(
     """
     CREATE TRIGGER IF NOT EXISTS UpdateNumStaff
-    AFTER INSERT ON Employees
+    AFTER INSERT ON Employee
     FOR EACH ROW
     BEGIN
         UPDATE Department
-        SET NumStaff = (SELECT COUNT(*) FROM Employees WHERE DepartmentID = NEW.DepartmentID),
+        SET NumStaff = (SELECT COUNT(*) FROM Employee WHERE DepartmentID = NEW.DepartmentID),
             HODID = NEW.EmployeeID
         WHERE DepartmentID = NEW.DepartmentID;
     END;
@@ -89,12 +89,6 @@ emp_form = tk.Frame(frame1, bg=col_4)
 dep_form = tk.Frame(frame1, bg=col_4)
 proj_form = tk.Frame(frame1, bg=col_4)
 pos_form = tk.Frame(frame1, bg=col_4)
-
-
-# cursor.execute("SELECT DepartmentID, DepartmentName FROM Department")
-# department_values = cursor.fetchall()
-# cursor.execute("SELECT EmployeeID, Name FROM Employees")
-# employee_values = cursor.fetchall()
 
 emp_fields = ["EmployeeID", "Name", "Age", "DepartmentID"]
 dep_fields = ["DepartmentID", "Department Name", "HODID"]
@@ -156,48 +150,121 @@ desc_pos.grid(row=3, column=1, columnspan=2)
 
 
 def insert_logic(selected_table):
-    if selected_table == "Departments":
-        id_dep = dep_id_entry.get()
-        department_name = name_entry_dep.get()
-        hod_id = HOD_ID_entry.get()
-        cursor.execute(
-            f"INSERT INTO Department(DepartmentID, DepartmentName, HODID) VALUES('{department_name}', {hod_id})"
-        )
-    elif selected_table == "Employees":
-        id_emp = emp_id_entry.get()
-        emp_name = name_entry.get()
-        emp_age = age_entry.get()
-        emp_dep = department_entry.get()
-        cursor.execute(
-            f"INSERT INTO Employees VALUES({id_emp}, '{emp_name}', {emp_age}, {emp_dep})"
-        )
-    elif selected_table == "EmployeePositions":
-        id_pos = pos_id.get()
-        pos_title = title_pos.get()
-        pos_salary = salary_pos.get()
-        pos_desc = desc_pos.get()
-        cursor.execute(
-            f"INSERT INTO Positions VALUES({id_pos}, '{pos_title}', {pos_salary}, '{pos_desc}')"
-        )
-    else:
-        id_proj = proj_id.get()
-        project_title = title_proj.get()
-        project_description = description_proj.get()
-        proj_emp = EmpID_proj.get()
-        cursor.execute(
-            f"INSERT INTO Projects VALUES({id_proj}, '{project_title}', '{project_description}', {proj_emp})"
-        )
-    messagebox.showinfo("Response", "Insertion Success") 
-    conn.commit()
-    
+    try:
+        if selected_table == "Department":
+            id_dep = int(dep_id_entry.get())
+            department_name = str(name_entry_dep.get())
+            hod_id = int(HOD_ID_entry.get())
+
+            cursor.execute(
+                "INSERT INTO Department(DepartmentID, DepartmentName, HODID) VALUES (?, ?, ?)",
+                (id_dep, department_name, hod_id),
+            )
+
+        elif selected_table == "Employee":
+            id_emp = emp_id_entry.get()
+            emp_name = name_entry.get()
+            emp_age = age_entry.get()
+            emp_dep = department_entry.get()
+            cursor.execute(
+                f"INSERT INTO Employee VALUES(?, ?, ?, ?)",
+                (id_emp, emp_name, emp_age, emp_dep),
+            )
+        elif selected_table == "Position":
+            selected_table = "Position"
+            id_pos = pos_id.get()
+            pos_title = title_pos.get()
+            pos_salary = salary_pos.get()
+            pos_desc = desc_pos.get()
+            cursor.execute(
+                f"INSERT INTO Position VALUES(?, ?, ?, ?)",
+                (id_pos, pos_title, pos_salary, pos_desc),
+            )
+        else:
+            selected_table = "Project"
+            id_proj = proj_id.get()
+            project_title = title_proj.get()
+            project_description = description_proj.get()
+            proj_emp = EmpID_proj.get()
+            cursor.execute(
+                f"INSERT INTO Project VALUES(?, ?, ?, ?)",
+                (id_proj, project_title, project_description, proj_emp),
+            )
+
+        messagebox.showinfo("Response", "Insertion Success")
+        conn.commit()
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Error during insertion: {str(e)}")
 
 
 def update_logic(selected_table):
-    print(selected_table)
+    try:
+        record_id = None
+        update_values = {}
+
+        if selected_table == "Department":
+            record_id = dep_id_entry.get()
+            update_values["DepartmentName"] = name_entry_dep.get()
+            update_values["HODID"] = HOD_ID_entry.get()
+        elif selected_table == "Employee":
+            record_id = emp_id_entry.get()
+            update_values["Name"] = name_entry.get()
+            update_values["Age"] = age_entry.get()
+            update_values["DepartmentID"] = department_entry.get()
+        elif selected_table == "Position":
+            record_id = pos_id.get()
+            update_values["Title"] = title_pos.get()
+            update_values["Salary"] = salary_pos.get()
+            update_values["Description"] = desc_pos.get()
+        else:
+            record_id = proj_id.get()
+            update_values["Title"] = title_proj.get()
+            update_values["Description"] = description_proj.get()
+            update_values["EmployeeID"] = EmpID_proj.get()
+        update_values = {
+            key: value for key, value in update_values.items() if value != ""
+        }
+        set_clause = ", ".join(f"{key} = ?" for key in update_values.keys())
+
+        sql_query = (
+            f"UPDATE {selected_table} SET {set_clause} WHERE {selected_table}ID = ?"
+        )
+        param_values = tuple(update_values.values()) + (record_id,)
+
+        cursor.execute(sql_query, param_values)
+
+        messagebox.showinfo("Response", "Updation Success")
+        conn.commit()
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Error during updation: {str(e)}")
 
 
 def delete_logic(selected_table):
-    print(selected_table)
+    try:
+        record_id = None
+        if selected_table == "Department":
+            record_id = dep_id_entry.get()
+        elif selected_table == "Employee":
+            record_id = emp_id_entry.get()
+        elif selected_table == "Position":
+            record_id = pos_id_entry.get()
+        elif selected_table == "Project":
+            record_id = proj_id_entry.get()
+
+        if record_id is not None:
+            cursor.execute(
+                f"DELETE FROM {selected_table} WHERE {selected_table[:-1]}ID = ?",
+                (record_id,),
+            )
+            messagebox.showinfo("Response", "Deletion Success")
+            conn.commit()
+        else:
+            messagebox.showwarning("Warning", "Please select a record to delete.")
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Error during deletion: {str(e)}")
 
 
 insert_button = tk.Button(
@@ -244,25 +311,25 @@ def ungrid_buttons():
 
 def table_choice(selected_table):
     ungrid_buttons()
-    if selected_table == "Employees":
+    if selected_table == "Employee":
         emp_form.grid()
         proj_form.grid_forget()
         pos_form.grid_forget()
         dep_form.grid_forget()
         grid_buttons()
-    elif selected_table == "Departments":
+    elif selected_table == "Department":
         emp_form.grid_forget()
         proj_form.grid_forget()
         pos_form.grid_forget()
         dep_form.grid()
         grid_buttons()
-    elif selected_table == "EmployeePositions":
+    elif selected_table == "Position":
         emp_form.grid_forget()
         proj_form.grid_forget()
         pos_form.grid()
         dep_form.grid_forget()
         grid_buttons()
-    elif selected_table == "EmployeeAssignments":
+    elif selected_table == "Project":
         emp_form.grid_forget()
         proj_form.grid()
         pos_form.grid_forget()
@@ -313,7 +380,7 @@ button2 = tk.Button(
     command=lambda: [show_frame(2)],
 )
 
-table_options = ["Employees", "Departments", "EmployeePositions", "EmployeeAssignments"]
+table_options = ["Employee", "Department", "Position", "Project"]
 table_var = tk.StringVar(root)
 table_var.set("Choose Here")
 table_label = tk.Label(
