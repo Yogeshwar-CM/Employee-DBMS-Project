@@ -249,13 +249,13 @@ def delete_logic(selected_table):
         elif selected_table == "Employee":
             record_id = emp_id_entry.get()
         elif selected_table == "Position":
-            record_id = pos_id_entry.get()
+            record_id = pos_id.get()
         elif selected_table == "Project":
-            record_id = proj_id_entry.get()
+            record_id = proj_id.get()
 
         if record_id is not None:
             cursor.execute(
-                f"DELETE FROM {selected_table} WHERE {selected_table[:-1]}ID = ?",
+                f"DELETE FROM {selected_table} WHERE {selected_table}ID = ?",
                 (record_id,),
             )
             messagebox.showinfo("Response", "Deletion Success")
@@ -278,8 +278,25 @@ delete_button = tk.Button(
 )
 
 
-def table_view(selected_table):
-    return
+def update_treeview(selected_table):
+    cursor.execute(f"PRAGMA table_info({selected_table})")
+    fields_info = cursor.fetchall()
+    field_names = [info[1] for info in fields_info]
+
+    tree = ttk.Treeview(
+        frame2, columns=field_names, show="headings", selectmode="browse"
+    )
+    tree.grid(row=0, columnspan=10)
+
+    for field in field_names:
+        tree.heading(field, text=field)
+        tree.column(field, width=125)
+
+    cursor.execute(f"SELECT * FROM {selected_table}")
+    rows = cursor.fetchall()
+
+    for row in rows:
+        tree.insert("", "end", values=row)
 
 
 def grid_buttons():
@@ -317,32 +334,36 @@ def table_choice(selected_table):
         pos_form.grid_forget()
         dep_form.grid_forget()
         grid_buttons()
+        update_treeview(selected_table)
     elif selected_table == "Department":
         emp_form.grid_forget()
         proj_form.grid_forget()
         pos_form.grid_forget()
         dep_form.grid()
         grid_buttons()
+        update_treeview(selected_table)
     elif selected_table == "Position":
         emp_form.grid_forget()
         proj_form.grid_forget()
         pos_form.grid()
         dep_form.grid_forget()
         grid_buttons()
+        update_treeview(selected_table)
     elif selected_table == "Project":
         emp_form.grid_forget()
         proj_form.grid()
         pos_form.grid_forget()
         dep_form.grid_forget()
         grid_buttons()
+        update_treeview(selected_table)
     else:
         return None
-    return table_view(selected_table)
 
 
 def show_frame(frame):
     if frame == 1:
         frame1.grid(row=2, columnspan=10, pady=(15, 0))
+        grid_buttons()
         frame2.grid_forget()
     elif frame == 2:
         frame2.grid(row=2, columnspan=10, pady=(15, 0))
