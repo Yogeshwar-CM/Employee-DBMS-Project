@@ -423,5 +423,4 @@ button2.grid(row=1, column=2, columnspan=2)
 
 
 root.mainloop()
-print(table_choice())
 cursor.close()
