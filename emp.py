@@ -480,8 +480,8 @@ def show_frame(frame):
         insert_button.grid_forget()
         update_button.grid_forget()
         delete_button.grid_forget()
-        dep_hod_button.grid(row=5,column=0, columnspan=5, pady=20)
-        emp_proj_button.grid(row=5,column=5, columnspan=5, pady=20)
+        dep_hod_button.grid(row=5,column=0, columnspan=5, pady=20, padx=5)
+        emp_proj_button.grid(row=5,column=5, columnspan=5, pady=20, padx=5)
     else:
         frame1.grid_forget()
         frame2.grid_forget()
