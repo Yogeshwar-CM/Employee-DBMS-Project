@@ -1,7 +1,7 @@
 import sqlite3
 from tkinter import ttk, messagebox
 import tkinter as tk
-
+# new
 conn = sqlite3.connect("employee.db")
 cursor = conn.cursor()
 cursor.execute(
@@ -97,7 +97,7 @@ proj_fields = ["ProjectID", "Title", "Description", "EmployeeID"]
 
 
 for i, field in enumerate(emp_fields, start=1):
-    label = tk.Label(emp_form, text=f"{field}: ", font=("Roboto", 16), bg=col_4)
+    label = tk.Label(emp_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 emp_id_entry = tk.Entry(emp_form)
@@ -110,7 +110,7 @@ department_entry = tk.Entry(emp_form)
 department_entry.grid(row=3, column=1, columnspan=2)
 
 for i, field in enumerate(dep_fields, start=1):
-    label = tk.Label(dep_form, text=f"{field}: ", font=("Roboto", 16), bg=col_4)
+    label = tk.Label(dep_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 dep_id_entry = tk.Entry(dep_form)
@@ -121,7 +121,7 @@ HOD_ID_entry = tk.Entry(dep_form)
 HOD_ID_entry.grid(row=2, column=1, columnspan=2)
 
 for i, field in enumerate(proj_fields, start=1):
-    label = tk.Label(proj_form, text=f"{field}: ", font=("Roboto", 16), bg=col_4)
+    label = tk.Label(proj_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 proj_id = tk.Entry(proj_form)
@@ -135,7 +135,7 @@ EmpID_proj = tk.Entry(proj_form)
 EmpID_proj.grid(row=3, column=1, columnspan=2)
 
 for i, field in enumerate(pos_fields, start=1):
-    label = tk.Label(pos_form, text=f"{field}: ", font=("Roboto", 16), bg=col_4)
+    label = tk.Label(pos_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 pos_id = tk.Entry(pos_form)
@@ -268,13 +268,16 @@ def delete_logic(selected_table):
 
 
 insert_button = tk.Button(
-    frame1, bg=col_4, text="Insert", command=lambda: insert_logic(table_var.get())
+    frame1, text="Insert", height=1, width=8, command=lambda: insert_logic(table_var.get())
 )
 update_button = tk.Button(
-    frame1, bg=col_4, text="Update", command=lambda: update_logic(table_var.get())
+    frame1, text="Update", height=1, width=8,  command=lambda: update_logic(table_var.get())
 )
 delete_button = tk.Button(
-    frame1, bg=col_4, text="Delete", command=lambda: delete_logic(table_var.get())
+    frame1, text="Delete", height=1, width=8,  command=lambda: delete_logic(table_var.get())
+)
+dep_hod_button = tk.Button(
+    frame2, text="Employee Department Table", height=1, width=24
 )
 
 
@@ -301,22 +304,25 @@ def update_treeview(selected_table):
 
 def grid_buttons():
     insert_button.grid(
-        row=3,
-        column=1,
+        row=4,
+        column=0,
         pady=(30, 0),
-        columnspan=2,
+        padx=5,
+        columnspan=3,
     )
     update_button.grid(
-        row=3,
+        row=4,
         column=3,
         pady=(30, 0),
-        columnspan=2,
+        columnspan=3,
+        padx=5,
     )
     delete_button.grid(
-        row=3,
-        column=5,
+        row=4,
+        column=6,
         pady=(30, 0),
-        columnspan=2,
+        columnspan=3,
+        padx=5,
     )
 
 
@@ -329,7 +335,7 @@ def ungrid_buttons():
 def table_choice(selected_table):
     ungrid_buttons()
     if selected_table == "Employee":
-        emp_form.grid()
+        emp_form.grid(columnspan = 10)
         proj_form.grid_forget()
         pos_form.grid_forget()
         dep_form.grid_forget()
@@ -339,19 +345,19 @@ def table_choice(selected_table):
         emp_form.grid_forget()
         proj_form.grid_forget()
         pos_form.grid_forget()
-        dep_form.grid()
+        dep_form.grid(columnspan = 10)
         grid_buttons()
         update_treeview(selected_table)
     elif selected_table == "Position":
         emp_form.grid_forget()
         proj_form.grid_forget()
-        pos_form.grid()
+        pos_form.grid(columnspan = 10)
         dep_form.grid_forget()
         grid_buttons()
         update_treeview(selected_table)
     elif selected_table == "Project":
         emp_form.grid_forget()
-        proj_form.grid()
+        proj_form.grid(columnspan = 10)
         pos_form.grid_forget()
         dep_form.grid_forget()
         grid_buttons()
@@ -359,18 +365,19 @@ def table_choice(selected_table):
     else:
         return None
 
-
 def show_frame(frame):
     if frame == 1:
+        frame2.grid_forget()
         frame1.grid(row=2, columnspan=10, pady=(15, 0))
         grid_buttons()
-        frame2.grid_forget()
+        dep_hod_button.grid_forget()
     elif frame == 2:
-        frame2.grid(row=2, columnspan=10, pady=(15, 0))
         frame1.grid_forget()
+        frame2.grid(row=2, columnspan=10, pady=(40, 0), padx=(50,0))
         insert_button.grid_forget()
         update_button.grid_forget()
         delete_button.grid_forget()
+        dep_hod_button.grid(row = 5, columnspan=10, pady=20)
     else:
         frame1.grid_forget()
         frame2.grid_forget()
@@ -379,7 +386,7 @@ def show_frame(frame):
 title_label = tk.Label(
     root,
     text="Employee Management System",
-    font=("Roboto", 32, "bold"),
+    font=("Roboto", 24, "bold"),
     bg=col_4,
     fg=col_1,
     anchor="center",
@@ -405,20 +412,20 @@ table_options = ["Employee", "Department", "Position", "Project"]
 table_var = tk.StringVar(root)
 table_var.set("Choose Here")
 table_label = tk.Label(
-    root, text="Select Table : ", bg=col_4, font=("Roboto", 16), fg=col_1
-).grid(row=1, column=4, pady=10)
+    root, text="Select Table : ", bg=col_4, font=("Roboto", 12), fg=col_1
+).grid(row=1, column=4, pady=10, padx=(20,0))
 
 table_dropdown = ttk.Combobox(
     root,
     textvariable=table_var,
     values=table_options,
-    font=("Roboto", 14),
+    font=("Roboto", 12),
 )
 table_dropdown.grid(row=1, column=5, pady=10, columnspan=4)
 table_dropdown.bind("<<ComboboxSelected>>", lambda event: table_choice(table_var.get()))
 
 
-button1.grid(row=1, column=0, columnspan=2, padx=(16, 0))
+button1.grid(row=1, column=0, columnspan=2, padx=(20, 10))
 button2.grid(row=1, column=2, columnspan=2)
 
 
