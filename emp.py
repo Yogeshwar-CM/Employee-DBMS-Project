@@ -1,6 +1,7 @@
 import sqlite3
 from tkinter import ttk, messagebox
 import tkinter as tk
+
 # new
 conn = sqlite3.connect("employee.db")
 cursor = conn.cursor()
@@ -97,7 +98,9 @@ proj_fields = ["ProjectID", "Title", "Description", "EmployeeID"]
 
 
 for i, field in enumerate(emp_fields, start=1):
-    label = tk.Label(emp_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
+    label = tk.Label(
+        emp_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1
+    )
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 emp_id_entry = tk.Entry(emp_form)
@@ -110,7 +113,9 @@ department_entry = tk.Entry(emp_form)
 department_entry.grid(row=3, column=1, columnspan=2)
 
 for i, field in enumerate(dep_fields, start=1):
-    label = tk.Label(dep_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
+    label = tk.Label(
+        dep_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1
+    )
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 dep_id_entry = tk.Entry(dep_form)
@@ -121,7 +126,9 @@ HOD_ID_entry = tk.Entry(dep_form)
 HOD_ID_entry.grid(row=2, column=1, columnspan=2)
 
 for i, field in enumerate(proj_fields, start=1):
-    label = tk.Label(proj_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
+    label = tk.Label(
+        proj_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1
+    )
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 proj_id = tk.Entry(proj_form)
@@ -135,7 +142,9 @@ EmpID_proj = tk.Entry(proj_form)
 EmpID_proj.grid(row=3, column=1, columnspan=2)
 
 for i, field in enumerate(pos_fields, start=1):
-    label = tk.Label(pos_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1)
+    label = tk.Label(
+        pos_form, text=f"{field}: ", font=("Roboto", 14), bg=col_4, fg=col_1
+    )
     label.grid(row=i - 1, column=0, padx=(25, 5), pady=5)
 
 pos_id = tk.Entry(pos_form)
@@ -268,20 +277,96 @@ def delete_logic(selected_table):
 
 
 insert_button = tk.Button(
-    frame1, text="Insert", height=1, width=8, command=lambda: insert_logic(table_var.get())
+    frame1,
+    text="Insert",
+    height=1,
+    width=8,
+    command=lambda: insert_logic(table_var.get()),
 )
 update_button = tk.Button(
-    frame1, text="Update", height=1, width=8,  command=lambda: update_logic(table_var.get())
+    frame1,
+    text="Update",
+    height=1,
+    width=8,
+    command=lambda: update_logic(table_var.get()),
 )
 delete_button = tk.Button(
-    frame1, text="Delete", height=1, width=8,  command=lambda: delete_logic(table_var.get())
+    frame1,
+    text="Delete",
+    height=1,
+    width=8,
+    command=lambda: delete_logic(table_var.get()),
 )
-dep_hod_button = tk.Button(
-    frame2, text="Employee Department Table", height=1, width=24
+tree = ttk.Treeview(
+    frame2, show="headings", selectmode="browse"
 )
+    
+def join_table_view():
+    global tree
+    tree.grid_forget()
+    cursor.execute(f"PRAGMA table_info(Employee)")
+    emp_fields_info = cursor.fetchall()
+    emp_field_names = [info[1] for info in emp_fields_info]
+
+    cursor.execute(f"PRAGMA table_info(Department)")
+    dep_fields_info = cursor.fetchall()
+    dep_field_names = [info[1] for info in dep_fields_info]
+    field_names = ["EmployeeID", "Name", "Department", "HODID"]
+
+    tree = ttk.Treeview(
+        frame2, columns=field_names, show="headings", selectmode="browse"
+    )
+    tree.grid(row=0, columnspan=10)
+
+    for field in field_names:
+        tree.heading(field, text=field)
+        tree.column(field, width=125)
+
+    cursor.execute(
+        """SELECT Employee.EmployeeID, Employee.Name, Department.DepartmentName, Department.HODID
+        FROM Employee
+        INNER JOIN Department ON Employee.DepartmentID = Department.DepartmentID"""
+    )
+    rows = cursor.fetchall()
+
+    for row in rows:
+        tree.insert("", "end", values=row)
+
+def join_proj_view():
+    global tree
+    tree.grid_forget()
+    cursor.execute(f"PRAGMA table_info(Employee)")
+    emp_fields_info = cursor.fetchall()
+    emp_field_names = [info[1] for info in emp_fields_info]
+
+    cursor.execute(f"PRAGMA table_info(Project)")
+    dep_fields_info = cursor.fetchall()
+    dep_field_names = [info[1] for info in dep_fields_info]
+    field_names = ["EmployeeID", "Name", "Project Title", "Description"]
+
+    tree = ttk.Treeview(
+        frame2, columns=field_names, show="headings", selectmode="browse"
+    )
+    tree.grid(row=0, columnspan=10)
+
+    for field in field_names:
+        tree.heading(field, text=field)
+        tree.column(field, width=125)
+
+    cursor.execute(
+        """SELECT Employee.EmployeeID, Employee.Name, Project.Title, Project.Description
+        FROM Employee
+        INNER JOIN Project ON Employee.EmployeeID = Project.EmployeeID"""
+    )
+    rows = cursor.fetchall()
+
+    for row in rows:
+        tree.insert("", "end", values=row)
 
 
 def update_treeview(selected_table):
+    global tree
+    tree.grid_forget()
     cursor.execute(f"PRAGMA table_info({selected_table})")
     fields_info = cursor.fetchall()
     field_names = [info[1] for info in fields_info]
@@ -300,6 +385,22 @@ def update_treeview(selected_table):
 
     for row in rows:
         tree.insert("", "end", values=row)
+
+
+dep_hod_button = tk.Button(
+    frame2,
+    text="Employee HOD",
+    height=1,
+    width=16,
+    command=join_table_view,
+)
+emp_proj_button = tk.Button(
+    frame2,
+    text="Employee Projects",
+    height=1,
+    width=16,
+    command=join_proj_view,
+)
 
 
 def grid_buttons():
@@ -335,7 +436,7 @@ def ungrid_buttons():
 def table_choice(selected_table):
     ungrid_buttons()
     if selected_table == "Employee":
-        emp_form.grid(columnspan = 10)
+        emp_form.grid(columnspan=10)
         proj_form.grid_forget()
         pos_form.grid_forget()
         dep_form.grid_forget()
@@ -345,19 +446,19 @@ def table_choice(selected_table):
         emp_form.grid_forget()
         proj_form.grid_forget()
         pos_form.grid_forget()
-        dep_form.grid(columnspan = 10)
+        dep_form.grid(columnspan=10)
         grid_buttons()
         update_treeview(selected_table)
     elif selected_table == "Position":
         emp_form.grid_forget()
         proj_form.grid_forget()
-        pos_form.grid(columnspan = 10)
+        pos_form.grid(columnspan=10)
         dep_form.grid_forget()
         grid_buttons()
         update_treeview(selected_table)
     elif selected_table == "Project":
         emp_form.grid_forget()
-        proj_form.grid(columnspan = 10)
+        proj_form.grid(columnspan=10)
         pos_form.grid_forget()
         dep_form.grid_forget()
         grid_buttons()
@@ -365,19 +466,22 @@ def table_choice(selected_table):
     else:
         return None
 
+
 def show_frame(frame):
     if frame == 1:
         frame2.grid_forget()
         frame1.grid(row=2, columnspan=10, pady=(15, 0))
         grid_buttons()
         dep_hod_button.grid_forget()
+        emp_proj_button.grid_forget()
     elif frame == 2:
         frame1.grid_forget()
-        frame2.grid(row=2, columnspan=10, pady=(40, 0), padx=(50,0))
+        frame2.grid(row=2, columnspan=10, pady=(40, 0), padx=(50, 0))
         insert_button.grid_forget()
         update_button.grid_forget()
         delete_button.grid_forget()
-        dep_hod_button.grid(row = 5, columnspan=10, pady=20)
+        dep_hod_button.grid(row=5,column=0, columnspan=5, pady=20)
+        emp_proj_button.grid(row=5,column=5, columnspan=5, pady=20)
     else:
         frame1.grid_forget()
         frame2.grid_forget()
@@ -413,7 +517,7 @@ table_var = tk.StringVar(root)
 table_var.set("Choose Here")
 table_label = tk.Label(
     root, text="Select Table : ", bg=col_4, font=("Roboto", 12), fg=col_1
-).grid(row=1, column=4, pady=10, padx=(20,0))
+).grid(row=1, column=4, pady=10, padx=(20, 0))
 
 table_dropdown = ttk.Combobox(
     root,
